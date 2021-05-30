@@ -1,6 +1,6 @@
 //Create variables here
-var database;
-var dog, Dog, happyDog, database, foodS, foodStock, feed, addFood;
+var database, changeState, readState;
+var dog, Dog, happyDog , sadImage, bedroomIMG, gardenIMG, washroomIMG, foodS, foodStock, feed, addFood;
 var fedTime, lastFed;
 var foodObj;
 
@@ -9,14 +9,19 @@ function preload()
 	//load images here
   Dog = loadImage("images/Dog.png");
   happyDog = loadImage("images/happydog.png");
+  sadImage = loadImage("images/dogImg.png")
+  bedroomIMG = loadImage("images/virtual pet images/Bed Room.png");
+  gardenIMG = loadImage("images/virtual pet images/Garden.png");
+  washroomIMG = loadImage("images/virtual pet images/Wash Room.png")
 }
 
 function setup() {
-  createCanvas(500,500);
+  createCanvas(909,380);
   database = firebase.database();
   
-  dog = createSprite(200,200,50,50);
+  dog = createSprite(720,220,50,50);
   dog.addImage(Dog);
+  dog.scale = 0.2
 
   foodStock = database.ref('Food');
   foodStock.on("value",readStock)
@@ -30,6 +35,11 @@ function setup() {
   addFood = createButton("Add Food");
   addFood.position(800,95);
   addFood.mousePressed(addFood)
+
+  readState =  database.ref('gameState');
+  readState.on("value",function(data){
+    gameState = data.val();
+  })
 }
 
 
@@ -43,11 +53,45 @@ function draw() {
   })
   drawSprites();
   //add styles here
-  display()
-  {
 
+
+  if (gameState !== hungry)
+  {
+    feed.hide();
+    addFood.hide();
+    dog.addImage(sadImage)
   }
 
+  fill(255,255,254);
+  textSize(15);
+  if(lastFed>=12){
+    text("Last Feed : " + lastFed%12 +"PM", 350,30);
+  }else if(lastFed == 0)
+  {
+    text("Last Feed : 12 AM",350,30);
+  }else
+  {
+    text("Last Feed : " + lastFed + "AM",350,30);
+  }
+
+  currentTime = hour();
+  if(currentTime == (lastFed+1))
+  {
+    update("Playing");
+      foodObj.garden();
+  }else if(currentTime==(lastFed+2))
+  {
+    update("Sleeping");
+      foodObj.bedroom();
+  }else if(currentTime>(lastFed+2) && currentTime <=(lastFed+4))
+  {
+    update("Bathing");
+      foodObj.washroom();
+  }else
+  {
+    update("Hungry");
+    foodObj.display();
+  }
 }
 
 function feedDog()
@@ -89,6 +133,13 @@ function writeStock(x)
 
   database.ref('/').update({
     Food:x
+  })
+}
+
+function update(state)
+{
+  database.ref('/').update({
+    gameState:state
   })
 }
 

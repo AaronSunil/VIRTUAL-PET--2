@@ -42,7 +42,7 @@ class Food
         var x=80,y=100;
 
         imageMode(CENTER);
-        image(this.image,720,220,70,70);
+        image(this.image,200,200,70,70);
 
         if(this.foodStock!=0)
         {
